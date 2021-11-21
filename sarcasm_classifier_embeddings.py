@@ -72,8 +72,8 @@ testing_sentences = sentences[training_size:]
 training_labels = labels[0:training_size]
 testing_labels = labels[training_size:]
 
-vocab_size = 10000
-embedding_dim = 16  # dimensions for embedding layer
+vocab_size = 2000
+embedding_dim = 7  # dimensions for embedding layer
 max_length = 100
 trunc_type = 'post'
 padding_type = 'post'
@@ -134,3 +134,24 @@ def plot_graphs(history, string):
 
 plot_graphs(history, "accuracy")
 plot_graphs(history, "loss")
+
+sentences_to_classify = ["granny starting to fear spiders in the garden might be real",
+                         "the donald is going to sign a humorous act",
+                         "office season finale showing this sunday night",
+                         "jane doe humiliates the crowd",
+                         "facebook CEO is going on trial again"]
+
+sequences_to_classify = tokenizer.texts_to_sequences(sentences_to_classify)
+print(sequences_to_classify)
+
+padded = pad_sequences(sequences_to_classify, maxlen=max_length, padding=padding_type, truncating=trunc_type)
+
+print(model.predict(padded))
+'''
+ [[0.58223563]
+ [0.30767888]
+ [0.40139234]
+ [0.53975517]
+ [0.5760794 ]]
+ better use bigger vocabulary...
+'''
