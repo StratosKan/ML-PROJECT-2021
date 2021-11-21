@@ -5,6 +5,8 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from bs4 import BeautifulSoup
 import string
 import os
+import matplotlib.pyplot as plt
+import numpy as np
 
 stopwords = ["a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "as", "at",
              "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", "could", "did", "do",
@@ -63,9 +65,72 @@ print(sentences[997] + " " + str(labels[997]) + " " + urls[997])
 
 # SETTING UP TRAIN DATA UNDER
 
-training_size = 20000
+training_size = 23000
 
 training_sentences = sentences[0:training_size]
 testing_sentences = sentences[training_size:]
 training_labels = labels[0:training_size]
-testing_labels = sentences[training_size:]
+testing_labels = labels[training_size:]
+
+vocab_size = 10000
+embedding_dim = 16  # dimensions for embedding layer
+max_length = 100
+trunc_type = 'post'
+padding_type = 'post'
+oov_tok = "<OOV>"
+
+tokenizer = Tokenizer(num_words=vocab_size, oov_token=oov_tok)
+tokenizer.fit_on_texts(training_sentences)
+word_index = tokenizer.word_index
+# print(word_index)
+
+training_sequences = tokenizer.texts_to_sequences(training_sentences)
+training_padded = pad_sequences(training_sequences, maxlen=max_length, padding=padding_type, truncating=trunc_type)
+testing_sequences = tokenizer.texts_to_sequences(testing_sentences)
+testing_padded = pad_sequences(testing_sequences, maxlen=max_length, padding=padding_type, truncating=trunc_type)
+
+# Need to convert into np.array in Tensorflow 2.x
+training_padded = np.array(training_padded)
+training_labels = np.array(training_labels)
+testing_padded = np.array(testing_padded)
+testing_labels = np.array(testing_labels)
+
+# wc = tokenizer.word_counts
+# print(wc)
+print(str(training_padded[0]) + " " + str(testing_padded[0]))
+print(str(training_padded[100]) + " " + str(testing_padded[100]))
+print(str(training_labels[0]) + " " + str(testing_labels[0]))
+print(str(training_labels[100]) + " " + str(testing_labels[100]))
+
+# MODEL PREPARATION
+
+model = tf.keras.Sequential([
+    tf.keras.layers.Embedding(vocab_size, embedding_dim),
+    tf.keras.layers.GlobalAveragePooling1D(),
+    tf.keras.layers.Dense(8, activation='relu', kernel_regularizer= tf.keras.regularizers.l2(0.01)),
+    tf.keras.layers.Dropout(.25),
+    tf.keras.layers.Dense(1, activation='sigmoid')
+])
+adam = tf.keras.optimizers.Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, amsgrad=False)  # typical lr=0.001
+model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
+
+# model.summary()
+
+# MODEL TRAINING
+num_epochs = 100
+history = model.fit(
+    training_padded, training_labels, epochs=num_epochs, validation_data=(testing_padded, testing_labels), verbose=2
+)
+
+
+def plot_graphs(history, string):
+    plt.plot(history.history[string])
+    plt.plot(history.history['val_'+string])
+    plt.xlabel("Epochs")
+    plt.ylabel(string)
+    plt.legend([string, 'val_'+string])
+    plt.show()
+
+
+plot_graphs(history, "accuracy")
+plot_graphs(history, "loss")
