@@ -108,7 +108,7 @@ num_epochs = 30
 history = model.fit(
     training_padded, training_labels, epochs=num_epochs, validation_data=(testing_padded, testing_labels), verbose=2
 )
-
+# ~50s per epoch on curr machine
 
 def plot_graphs(history, string):
     plt.plot(history.history[string])
