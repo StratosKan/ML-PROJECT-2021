@@ -53,7 +53,7 @@ model.add(Bidirectional(LSTM(max_sequence_len-1)))
 model.add(Dense(total_words, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-history = model.fit(xs, ys, epochs=10, verbose=1)
+history = model.fit(xs, ys, epochs=500, verbose=1)
 
 
 def plot_graphs(history, string):
@@ -65,3 +65,49 @@ def plot_graphs(history, string):
 
 plot_graphs(history, 'accuracy')
 plot_graphs(history, 'loss')
+
+# TESTING THE GENERATOR
+
+seed_text = "sweet jeremy saw dublin"
+
+token_list = tokenizer.texts_to_sequences([seed_text])[0]
+token_list = pad_sequences([token_list], maxlen=max_sequence_len-1, padding='pre')
+predicted = np.argmax(model.predict(token_list), axis=-1)
+pred_classes = model.predict(token_list)
+print(pred_classes.reshape(-1)[predicted])
+print(predicted)
+for word, index in tokenizer.word_index.items():
+    if index == predicted:
+        print(word)
+        break
+
+
+seed_text = "it was the best of times"
+next_words = 100
+
+for _ in range(next_words):
+    token_list = tokenizer.texts_to_sequences([seed_text])[0]
+    token_list = pad_sequences([token_list], maxlen=max_sequence_len-1, padding='pre')
+    predicted = np.argmax(model.predict(token_list), axis=-1)
+    output_word = ""
+    for word, index in tokenizer.word_index.items():
+        if index == predicted:
+            output_word = word
+            break
+    seed_text += " " + output_word
+print(seed_text)
+
+seed_text = "johnny cowboy was not a hero"
+next_words = 100
+
+for _ in range(next_words):
+    token_list = tokenizer.texts_to_sequences([seed_text])[0]
+    token_list = pad_sequences([token_list], maxlen=max_sequence_len-1, padding='pre')
+    predicted = np.argmax(model.predict(token_list), axis=-1)
+    output_word = ""
+    for word, index in tokenizer.word_index.items():
+        if index == predicted:
+            output_word = word
+            break
+    seed_text += " " + output_word
+print(seed_text)
