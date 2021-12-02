@@ -67,3 +67,23 @@ for feature, label in dataset.take(1):
     print(feature)
     print(label)
 
+# Model Creation
+dataset = windowed_dataset(x_train, window_size, batch_size, shuffle_buffer_size)
+
+model = tf.keras.models.Sequential([
+    tf.keras.layers.Dense(10, input_shape=[window_size], activation='relu'),
+    tf.keras.layers.Dense(10, activation='relu'),
+    tf.keras.layers.Dense(1)
+])
+
+model.compile(loss='mse', optimizer=tf.keras.optimizers.SGD(learning_rate=1e-6, momentum=0.9))
+model.fit(dataset, epochs=100, verbose=1)
+
+start_point = 1000
+print(series[start_point:start_point+window_size])
+print(series[start_point+window_size])
+print(model.predict(series[start_point:start_point+window_size][np.newaxis]))
+
+print(series[1000:2000])
+print(series[1020])
+print(model.predict(series[1000:1020][np.newaxis]))
